@@ -1,12 +1,16 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+
 from copy import deepcopy
+from scipy.optimize import curve_fit
 
 class data_P_Fc:
-	def __init__(self, data_P, data_Fc, start, end):
+	def __init__(self, data_P, data_Fc, data_P_full, data_Fc_full, start, end):
 		self.data_P = deepcopy(data_P)
 		self.data_Fc = deepcopy(data_Fc)
+		self.data_P_full = deepcopy(data_P_full)
+		self.data_Fc_full = deepcopy(data_Fc_full)
 		self.start = int(start)
 		self.end = int(end)
 		self.mean_P = 0
@@ -14,6 +18,7 @@ class data_P_Fc:
 		self.mean_Fc = 0
 		self.std_Fc = 0
 		self.nb_data = 0
+		self.derive_seg = 0
 		self.process_data()
 
 	def process_data(self):
@@ -22,9 +27,6 @@ class data_P_Fc:
 		self.mean_Fc = np.average(self.data_Fc)
 		self.std_Fc = np.std(self.data_Fc)
 		self.nb_data = len(self.data_P)
-
-
-
 
 def crop_data(data, start, end):
 	return data[start:end]
@@ -38,7 +40,7 @@ def extract_signal(data_p, data_fc, time_step=180, time_interest=90):
 		start = i * time_step + time_interest
 		end = i * time_step + time_step
 		# print("start : " + str(start) + " end : " + str(end))
-		l_roi_step.append(data_P_Fc(data_p[start:end], data_fc[start:end], start, end))
+		l_roi_step.append(data_P_Fc(data_p[start:end], data_fc[start:end], data_p, data_fc, start, end))
 
 	return l_roi_step
 
@@ -61,6 +63,21 @@ def create_array_debug(l_step, siz):
 
 	return displ_data
 
+def func_aff(x, a, b):
+	return a * x + b
+
+def computer_derive(step):
+	x = np.linspace(0, step.nb_data, num=step.nb_data)
+	y = step.data_Fc
+	popt, pcov = curve_fit(func_aff, x, y)
+	plt.plot(x, y, 'b-', label='data')
+	plt.plot(x, func_aff(x, *popt), 'r-', label='fit: a=%5.3f, b=%5.3f' % tuple(popt))
+	plt.xlabel('x')
+	plt.ylabel('y')
+	plt.legend()
+	plt.show()
+
+
 
 if __name__ == '__main__':
 
@@ -80,7 +97,8 @@ if __name__ == '__main__':
 	debug_data = create_array_debug(l_data, len(P_c))
 	display(l_data)
 
-	# TODO : display all start and stop sur le graphique
+	computer_derive(l_data[4])
+
 
 	x = np.linspace(0, len(P_c), num=len(P_c))
 

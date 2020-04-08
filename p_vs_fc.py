@@ -21,6 +21,8 @@ class data_P_Fc:
 		self.derive_seg = 0
 		self.param_fit = []
 		self.param_fit_exp = []
+		self.param_fit_sigmo = []
+		self.param_fit_exp_controle_vitesse = []
 		self.process_data()
 
 	def process_data(self):
@@ -68,6 +70,50 @@ def create_array_debug(l_step, siz):
 def func_aff(x, a, b):
 	return a * x + b
 
+def mod_sigmo(x, a, offset, delay):
+	y = a * (1 / 2 + 1 / 2 * np.tanh((x - delay) / 2)) + offset
+
+	return y
+
+def exp_controle_vitesse(x, a, speed, offset, delay ):
+	y = (a / (1 + np.exp(- speed * (x - delay)))) + offset
+
+	return y
+
+def compute_exp_controle_vitesse(step):
+	x = np.linspace(0, len(step.data_Fc_full)-1, num=len(step.data_Fc_full))
+	y = step.data_Fc_full
+	x = [int(elt) for elt in x]
+	y_np = np.array(y)
+	popt, pcov = curve_fit(exp_controle_vitesse, x, y_np, bounds=([8, 0.1, 152, 35], [18, 0.2, 158, 80]))
+
+	step.param_fit_exp_controle_vitesse = popt[:]
+
+def display_exp_controle_vitesse(step):
+	x = np.linspace(0, len(step.data_Fc_full), num=len(step.data_Fc_full))
+	y = step.data_Fc_full
+	plt.figure()
+	plt.plot(x, y, 'o')
+	plt.plot(x, exp_controle_vitesse(x, *step.param_fit_exp_controle_vitesse), 'r-')
+	plt.show()
+
+def compute_mod_sigmo(step):
+	x = np.linspace(0, len(step.data_Fc_full)-1, num=len(step.data_Fc_full))
+	y = step.data_Fc_full
+	x = [int(elt) for elt in x]
+	y_np = np.array(y)
+	popt, pcov = curve_fit(mod_sigmo, x, y_np, bounds=([8, 152, 35], [18, 158, 80]))
+
+	step.param_fit_sigmo = popt[:]
+
+def display_mod_sigmo(step):
+	x = np.linspace(0, len(step.data_Fc_full), num=len(step.data_Fc_full))
+	y = step.data_Fc_full
+	plt.figure()
+	plt.plot(x, y, 'o')
+	plt.plot(x, mod_sigmo(x, *step.param_fit_sigmo), 'r-')
+	plt.show()
+
 def mod_charge_exp(x, p, tho, b):
 	a = p - b
 	y = (a * (1 - np.exp(- x / tho))) + b
@@ -79,14 +125,7 @@ def compute_mod_exp(step):
 	y = step.data_Fc_full
 	x = [int(elt) for elt in x]
 	y_np = np.array(y)
-	# mini = np.min(y_np)
-	# y_np = y_np - mini
-	# y_np = y_np / np.max(y_np)  
-	print("Valeurs dans le tableau x : ", x)
-	print("Valeurs dans le tableau y : ", y)
-	print("Nombre de valeurs dans le tableau y : ", len(y))
-	print("Nombre de valeurs dans le tableau x : ", len(x))
-	popt, pcov = curve_fit(mod_charge_exp, x, y_np, bounds=([161, 45., 150], [166., 75, 156]))
+	popt, pcov = curve_fit(mod_charge_exp, x, y_np, bounds=([161, 45., 152], [166., 55., 156]))
 
 	step.param_fit_exp = popt[:]
 
@@ -167,6 +206,11 @@ if __name__ == '__main__':
 	compute_mod_exp(l_data[4])
 	display_mod_exp(l_data[4])
 
+	compute_mod_sigmo(l_data[4])
+	display_mod_sigmo(l_data[4])
+
+	compute_exp_controle_vitesse(l_data[4])
+	display_exp_controle_vitesse(l_data[4])
 
 	x = np.linspace(0, len(P_c), num=len(P_c))
 

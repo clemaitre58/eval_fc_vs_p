@@ -68,18 +68,25 @@ def create_array_debug(l_step, siz):
 def func_aff(x, a, b):
 	return a * x + b
 
-def mod_charge_exp(x, p, tho):
-	y = p* (1 - np.exp(- x / tho))
+def mod_charge_exp(x, p, tho, b):
+	a = p - b
+	y = (a * (1 - np.exp(- x / tho))) + b
+
+	return y
 
 def compute_mod_exp(step):
 	x = np.linspace(0, len(step.data_Fc_full)-1, num=len(step.data_Fc_full))
 	y = step.data_Fc_full
 	x = [int(elt) for elt in x]
+	y_np = np.array(y)
+	# mini = np.min(y_np)
+	# y_np = y_np - mini
+	# y_np = y_np / np.max(y_np)  
 	print("Valeurs dans le tableau x : ", x)
 	print("Valeurs dans le tableau y : ", y)
 	print("Nombre de valeurs dans le tableau y : ", len(y))
 	print("Nombre de valeurs dans le tableau x : ", len(x))
-	popt, pcov = curve_fit(mod_charge_exp, x, y)
+	popt, pcov = curve_fit(mod_charge_exp, x, y_np, bounds=([161, 45., 150], [166., 75, 156]))
 
 	step.param_fit_exp = popt[:]
 
@@ -88,7 +95,7 @@ def display_mod_exp(step):
 	y = step.data_Fc_full
 	plt.figure()
 	plt.plot(x, y, 'o')
-	plt.plot(x, func_aff(x, *step.param_fit_exp), 'r-')
+	plt.plot(x, mod_charge_exp(x, *step.param_fit_exp), 'r-')
 	plt.show()
 
 

@@ -20,6 +20,7 @@ class data_P_Fc:
 		self.nb_data = 0
 		self.derive_seg = 0
 		self.param_fit = []
+		self.param_fit_exp = []
 		self.process_data()
 
 	def process_data(self):
@@ -41,7 +42,7 @@ def extract_signal(data_p, data_fc, time_step=180, time_interest=90):
 		start = i * time_step + time_interest
 		end = i * time_step + time_step
 		# print("start : " + str(start) + " end : " + str(end))
-		l_roi_step.append(data_P_Fc(data_p[start:end], data_fc[start:end], data_p, data_fc, start, end))
+		l_roi_step.append(data_P_Fc(data_p[start:end], data_fc[start:end], data_p[i * time_step:i * time_step + time_step], data_fc[i * time_step:i * time_step + time_step], start, end))
 
 	return l_roi_step
 
@@ -66,6 +67,30 @@ def create_array_debug(l_step, siz):
 
 def func_aff(x, a, b):
 	return a * x + b
+
+def mod_charge_exp(x, p, tho):
+	y = p* (1 - np.exp(- x / tho))
+
+def compute_mod_exp(step):
+	x = np.linspace(0, len(step.data_Fc_full)-1, num=len(step.data_Fc_full))
+	y = step.data_Fc_full
+	x = [int(elt) for elt in x]
+	print("Valeurs dans le tableau x : ", x)
+	print("Valeurs dans le tableau y : ", y)
+	print("Nombre de valeurs dans le tableau y : ", len(y))
+	print("Nombre de valeurs dans le tableau x : ", len(x))
+	popt, pcov = curve_fit(mod_charge_exp, x, y)
+
+	step.param_fit_exp = popt[:]
+
+def display_mod_exp(step):
+	x = np.linspace(0, len(step.data_Fc_full), num=len(step.data_Fc_full))
+	y = step.data_Fc_full
+	plt.figure()
+	plt.plot(x, y, 'o')
+	plt.plot(x, func_aff(x, *step.param_fit_exp), 'r-')
+	plt.show()
+
 
 def compute_derive(step):
 	x = np.linspace(0, step.nb_data, num=step.nb_data)
@@ -131,6 +156,9 @@ if __name__ == '__main__':
 	print_derive(l_data)
 	print_derive_moyenne(l_data)
 	plot_all_derive(l_data)
+
+	compute_mod_exp(l_data[4])
+	display_mod_exp(l_data[4])
 
 
 	x = np.linspace(0, len(P_c), num=len(P_c))

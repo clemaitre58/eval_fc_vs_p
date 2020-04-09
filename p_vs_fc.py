@@ -98,11 +98,17 @@ def display_exp_controle_vitesse(step):
 	plt.show()
 
 def compute_mod_sigmo(step):
+	first_val = step.data_Fc_full[0]
+	last_val = step.data_Fc_full[len(step.data_Fc_full) - 1]
+	low_a = (last_val - first_val) * 0.9
+	high_a = (last_val - first_val) * 1.1
+	low_offset = first_val * 0.9
+	high_offset = first_val * 1.1
 	x = np.linspace(0, len(step.data_Fc_full)-1, num=len(step.data_Fc_full))
 	y = step.data_Fc_full
 	x = [int(elt) for elt in x]
 	y_np = np.array(y)
-	popt, pcov = curve_fit(mod_sigmo, x, y_np, bounds=([8, 152, -np.inf, 35], [18, 158, np.inf, 80]))
+	popt, pcov = curve_fit(mod_sigmo, x, y_np, bounds=([low_a, low_offset, -np.inf, 35], [high_a, high_offset, np.inf, 80]))
 
 	step.param_fit_sigmo = popt[:]
 
@@ -182,7 +188,9 @@ def print_derive_moyenne(l_step):
 
 if __name__ == '__main__':
 
+	plt.close('all')
 	filename_fit = '/Volumes/HD/Apeira/Ergocycle/Physio/Data/TestPma/2020-04-02-15-10-05.csv'
+	# filename_fit = '/Volumes/HD/Apeira/Ergocycle/Physio/Data/TestPma/ACurtil/4746600763.csv'
 	start = 0
 	end = 1440
 	l_data = []

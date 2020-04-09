@@ -70,8 +70,8 @@ def create_array_debug(l_step, siz):
 def func_aff(x, a, b):
 	return a * x + b
 
-def mod_sigmo(x, a, offset, delay):
-	y = a * (1 / 2 + 1 / 2 * np.tanh((x - delay) / 2)) + offset
+def mod_sigmo(x, a, offset, speed ,delay):
+	y = a * (1 / 2 + 1 / 2 * np.tanh((x - delay) / speed)) + offset
 
 	return y
 
@@ -102,7 +102,7 @@ def compute_mod_sigmo(step):
 	y = step.data_Fc_full
 	x = [int(elt) for elt in x]
 	y_np = np.array(y)
-	popt, pcov = curve_fit(mod_sigmo, x, y_np, bounds=([8, 152, 35], [18, 158, 80]))
+	popt, pcov = curve_fit(mod_sigmo, x, y_np, bounds=([8, 152, -np.inf, 35], [18, 158, np.inf, 80]))
 
 	step.param_fit_sigmo = popt[:]
 
@@ -203,8 +203,8 @@ if __name__ == '__main__':
 	print_derive_moyenne(l_data)
 	plot_all_derive(l_data)
 
-	compute_mod_exp(l_data[4])
-	display_mod_exp(l_data[4])
+	# compute_mod_exp(l_data[4])
+	# display_mod_exp(l_data[4])
 
 	compute_mod_sigmo(l_data[4])
 	display_mod_sigmo(l_data[4])

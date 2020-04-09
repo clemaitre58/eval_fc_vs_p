@@ -81,11 +81,17 @@ def exp_controle_vitesse(x, a, speed, offset, delay ):
 	return y
 
 def compute_exp_controle_vitesse(step):
+	first_val = step.data_Fc_full[0]
+	last_val = step.data_Fc_full[len(step.data_Fc_full) - 1]
+	low_a = (last_val - first_val) * 0.9
+	high_a = (last_val - first_val) * 1.1
+	low_offset = first_val * 0.9
+	high_offset = first_val * 1.1
 	x = np.linspace(0, len(step.data_Fc_full)-1, num=len(step.data_Fc_full))
 	y = step.data_Fc_full
 	x = [int(elt) for elt in x]
 	y_np = np.array(y)
-	popt, pcov = curve_fit(exp_controle_vitesse, x, y_np, bounds=([8, 0.1, 152, 35], [18, 0.2, 158, 80]))
+	popt, pcov = curve_fit(exp_controle_vitesse, x, y_np, bounds=([low_a, 0.1, low_offset, 35], [high_a, 0.2, high_offset, 80]))
 
 	step.param_fit_exp_controle_vitesse = popt[:]
 
@@ -214,11 +220,11 @@ if __name__ == '__main__':
 	# compute_mod_exp(l_data[4])
 	# display_mod_exp(l_data[4])
 
-	compute_mod_sigmo(l_data[4])
-	display_mod_sigmo(l_data[4])
+	compute_mod_sigmo(l_data[7])
+	display_mod_sigmo(l_data[7])
 
-	compute_exp_controle_vitesse(l_data[4])
-	display_exp_controle_vitesse(l_data[4])
+	compute_exp_controle_vitesse(l_data[7])
+	display_exp_controle_vitesse(l_data[7])
 
 	x = np.linspace(0, len(P_c), num=len(P_c))
 

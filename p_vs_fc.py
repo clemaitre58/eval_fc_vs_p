@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from copy import deepcopy
 from scipy.optimize import curve_fit
 
+from utls import eval_model
+
 class data_P_Fc:
 	def __init__(self, data_P, data_Fc, data_P_full, data_Fc_full, start, end):
 		self.data_P = deepcopy(data_P)
@@ -19,6 +21,8 @@ class data_P_Fc:
 		self.std_Fc = 0
 		self.nb_data = 0
 		self.derive_seg = 0
+		self.R2_mod_exp = 0
+		self.R2_mod_sigmo = 0
 		self.param_fit = []
 		self.param_fit_exp = []
 		self.param_fit_sigmo = []
@@ -103,6 +107,13 @@ def display_exp_controle_vitesse(step):
 	plt.plot(x, exp_controle_vitesse(x, *step.param_fit_exp_controle_vitesse), 'r-')
 	plt.show()
 
+def compute_R2_mod_exp(step):
+	x = np.linspace(0, len(step.data_Fc_full), num=len(step.data_Fc_full))
+	y = step.data_Fc_full
+	yi = exp_controle_vitesse(x, step.param_fit_exp_controle_vitesse[0], 
+	step.param_fit_exp_controle_vitesse[1], step.param_fit_exp_controle_vitesse[2], step.param_fit_exp_controle_vitesse[3])
+	step.R2_mod_exp = eval_model.R_2(y, yi)
+
 def compute_mod_sigmo(step):
 	first_val = step.data_Fc_full[0]
 	last_val = step.data_Fc_full[len(step.data_Fc_full) - 1]
@@ -126,6 +137,12 @@ def display_mod_sigmo(step):
 	plt.plot(x, mod_sigmo(x, *step.param_fit_sigmo), 'r-')
 	plt.show()
 
+def compute_R2_mod_sigmo(step):
+	x = np.linspace(0, len(step.data_Fc_full), num=len(step.data_Fc_full))
+	y = step.data_Fc_full
+	yi = mod_sigmo(x, step.param_fit_sigmo[0], step.param_fit_sigmo[1], step.param_fit_sigmo[2], step.param_fit_sigmo[3])
+	step.R2_mod_sigmo = eval_model.R_2(y, yi)
+
 def mod_charge_exp(x, p, tho, b):
 	a = p - b
 	y = (a * (1 - np.exp(- x / tho))) + b
@@ -148,7 +165,6 @@ def display_mod_exp(step):
 	plt.plot(x, y, 'o')
 	plt.plot(x, mod_charge_exp(x, *step.param_fit_exp), 'r-')
 	plt.show()
-
 
 def compute_derive(step):
 	x = np.linspace(0, step.nb_data, num=step.nb_data)
@@ -220,11 +236,17 @@ if __name__ == '__main__':
 	# compute_mod_exp(l_data[4])
 	# display_mod_exp(l_data[4])
 
-	compute_mod_sigmo(l_data[7])
-	display_mod_sigmo(l_data[7])
+	ind_2_test = 7
 
-	compute_exp_controle_vitesse(l_data[7])
-	display_exp_controle_vitesse(l_data[7])
+	compute_mod_sigmo(l_data[ind_2_test])
+	display_mod_sigmo(l_data[ind_2_test])
+	compute_R2_mod_sigmo(l_data[ind_2_test])
+	print('R^2 pour modele sigmo : ', l_data[ind_2_test].R2_mod_sigmo)
+
+	compute_exp_controle_vitesse(l_data[ind_2_test])
+	display_exp_controle_vitesse(l_data[ind_2_test])
+	compute_R2_mod_exp(l_data[ind_2_test])
+	print('R^2 pour modele logistique : ', l_data[ind_2_test].R2_mod_exp)
 
 	x = np.linspace(0, len(P_c), num=len(P_c))
 
